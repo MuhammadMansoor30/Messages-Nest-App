@@ -1,14 +1,17 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, NotFoundException } from '@nestjs/common';
 import { CreateMessageDto } from './dtos/create-message.dto';
 import { MessagesService } from './messages.services';
 
 @Controller('messages')
 export class MessagesController {
-    messagesService: MessagesService;
-
-    constructor(){
-        this.messagesService = new MessagesService();
-    }
+    // Created using Inversion control using the Depenedency Injection (DI)
+    constructor(public messagesService: MessagesService){}
+    
+    // Created using the traditional method of passing and creating own dependencies.
+    // messagesService: MessagesService;
+    // constructor(){
+    //     this.messagesService = new MessagesService();
+    // }
 
     @Get()
     listMessages(){
@@ -21,13 +24,17 @@ export class MessagesController {
     }
 
     @Get('/:id')
-    getMessage(@Param('id') id: string){
-        return this.messagesService.findOne(id);
+    async getMessage(@Param('id') id: string){
+        const messages = await this.messagesService.findOne(id);
+
+        if(!messages){
+            throw new NotFoundException('Message Not Found');
+        }
+        return messages;
     }
 }
 
-
-// NOTES (SEC 3 + 4):
+// NOTES (SEC 3 + 4 + 5):
 // Creating the controllers file using the generate command mentioned in main.ts file.
 // Here we will define 3 methods to Get and Pots the messages data.
 // In Nestjs there are many different decorators to access data from the http request.
@@ -40,3 +47,5 @@ export class MessagesController {
 // @Params and other three http decorators are argument decorators and are appliedn to arguments of a method/function.
 // Adding CreateMessageDto as type of the body object to add validations to teh POST Route after importing it. 
 // Adding Messages Services dependency to get the get from the file we have created using he actual path defined. 
+// The NotFOundException is present in Nestjs and is used to provide the error detail to user in an understandable manner.
+// There are Exceptions for all the Http status codes in Nestja nd we will use them later.
